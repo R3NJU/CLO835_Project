@@ -44,11 +44,11 @@ table = 'employee';
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    return render_template('addemp.html', color=color_codes[COLOR])
+    return render_template('addemp.html', header_name=HEADER, bg_image=IMAGE_KEY)
 
 @app.route("/about", methods=['GET','POST'])
 def about():
-    return render_template('about.html', color=color_codes[COLOR])
+    return render_template('about.html', header_name=HEADER, bg_image=IMAGE_KEY)
     
 @app.route("/addemp", methods=['POST'])
 def AddEmp():
@@ -72,11 +72,11 @@ def AddEmp():
         cursor.close()
 
     print("all modification done...")
-    return render_template('addempoutput.html', name=emp_name, color=color_codes[COLOR])
+    return render_template('addempoutput.html', name=emp_name, header_name=HEADER, bg_image=IMAGE_KEY)
 
 @app.route("/getemp", methods=['GET', 'POST'])
 def GetEmp():
-    return render_template("getemp.html", color=color_codes[COLOR])
+    return render_template("getemp.html", header_name=HEADER, bg_image=IMAGE_KEY)
 
 
 @app.route("/fetchdata", methods=['GET','POST'])
@@ -105,7 +105,7 @@ def FetchData():
         cursor.close()
 
     return render_template("getempoutput.html", id=output["emp_id"], fname=output["first_name"],
-                           lname=output["last_name"], interest=output["primary_skills"], location=output["location"], color=color_codes[COLOR])
+                           lname=output["last_name"], interest=output["primary_skills"], location=output["location"], header_name=HEADER, bg_image=IMAGE_KEY)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=8080,debug=True)
