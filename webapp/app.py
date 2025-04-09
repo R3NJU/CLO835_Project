@@ -3,9 +3,14 @@ from pymysql import connections
 import os
 import random
 import argparse
+import boto3
+import logging
 
 
 app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 DBHOST = os.environ.get("DBHOST") or "localhost"
 DBUSER = os.environ.get("DBUSER") or "root"
@@ -13,6 +18,18 @@ DBPWD = os.environ.get("DBPWD") or "passwors"
 DATABASE = os.environ.get("DATABASE") or "employees"
 COLOR_FROM_ENV = os.environ.get('APP_COLOR') or "lime"
 DBPORT = int(os.environ.get("DBPORT"))
+BUCKET = os.environ.get("BUCKET")
+IMAGE_KEY = os.environ.get("IMAGENAME")
+HEADER = os.environ.get("HEADER_NAME")
+
+def download_file(image_key, bucket): #Function to download a given file from an S3 bucket
+    s3 = boto3.resource('s3')
+    output = f"static/{image_key}"
+    s3.Bucket(bucket).download_file(image_key, output)
+    logging.info(f"Background image will be served from: {output}")
+    return output
+
+download_file(IMAGE_KEY, BUCKET)
 
 # Create a connection to the MySQL database
 db_conn = connections.Connection(
