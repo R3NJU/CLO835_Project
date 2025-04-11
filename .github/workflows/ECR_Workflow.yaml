@@ -1,0 +1,91 @@
+name: Deploy Images to ECR
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  build:
+    name: Build Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_REGION: us-east-1
+
+      # Step 3: Build and Push SQL Image
+      - name: Build and Push SQL Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: 638733641367.dkr.ecr.us-east-1.amazonaws.com/clo835
+          IMAGE_TAG: sql
+        run: |
+          ls -ltra
+          docker build . -t $ECR_REPOSITORY:$IMAGE_TAG -f webapp/Dockerfile_mysql
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
+          docker run --name my_db -d -e MYSQL_ROOT_PASSWORD=pw $ECR_REPOSITORY:$IMAGE_TAG
+
+      # Step 4: Build Flask App
+      - name: Build Flask App
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: 638733641367.dkr.ecr.us-east-1.amazonaws.com/clo835
+          IMAGE_TAG: flask
+        run: |
+          ls -ltra
+          docker build . -t $ECR_REPOSITORY:$IMAGE_TAG -f webapp/Dockerfile
+
+      # Step 5: Test and Push Flask App
+      - name: Test Flask App
+        env:
+          ECR_REPOSITORY: 638733641367.dkr.ecr.us-east-1.amazonaws.com/clo835
+          IMAGE_TAG: flask
+          DBHOST: 172.17.0.2
+          DBPORT: 3306
+          HEADER_NAME: Group3
+          IMAGENAME: background.jpg
+          BUCKET: clo835gp3
+          DBUSER: root
+          DBPWD: pw
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          docker run --name flask_app -d -p 81:8080 \
+            -e DBHOST=$DBHOST \
+            -e DBPORT=$DBPORT \
+            -e DBUSER=$DBUSER \
+            -e DBPWD=$DBPWD \
+            -e HEADER_NAME=$HEADER_NAME \
+            -e IMAGENAME=$IMAGENAME \
+            -e BUCKET=$BUCKET \
+            -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+            -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+            -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
+            -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+            $ECR_REPOSITORY:$IMAGE_TAG
+
+          docker ps
+          echo "Pause for 10 seconds to let container start"
+          sleep 10
+          if ! curl -s localhost:81 | grep -q "Add Employee Information"; then
+            echo "Error: 'Add Employee Information' not found in response."
+            exit 1
+          fi
+          echo "Flask App Tested successfully.. Pushing to ECR"
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
