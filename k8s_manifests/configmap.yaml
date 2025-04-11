@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flask-config
+  namespace: final
+data:
+  DBPORT: "3306"
+  IMAGENAME: "background.jpg"
+  BUCKET: "clo835gp3"
+  NAME: "Vidhi"
+  DBHOST: 'mysql-service.final.svc.cluster.local'
+
