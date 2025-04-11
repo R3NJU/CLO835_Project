@@ -14,10 +14,10 @@ spec:
         app: mysql
     spec:
       imagePullSecrets:
-        - name: ecr-secret
+      - name: ecr-secret
       containers:
       - name: mysql
-        image: 638733641367.dkr.ecr.us-east-1.amazonaws.com:sql
+        image: 638733641367.dkr.ecr.us-east-1.amazonaws.com/clo835:sql
         ports:
         - containerPort: 3306
         env:
