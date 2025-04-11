@@ -83,8 +83,10 @@ jobs:
             $ECR_REPOSITORY:$IMAGE_TAG
 
           docker ps
-          echo "Pause for 10 seconds to let container start"
-          sleep 10
+          echo "Pause for 20 seconds to let container start"
+          sleep 20
+          docker ps
+          echo "$(curl -s localhost:81)"
           if ! curl -s localhost:81 | grep -q "Add Employee Information"; then
             echo "Error: 'Add Employee Information' not found in response."
             exit 1
