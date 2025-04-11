@@ -35,7 +35,7 @@ jobs:
           IMAGE_TAG: sql
         run: |
           ls -ltra
-          docker build . -t $ECR_REPOSITORY:$IMAGE_TAG -f webapp/Dockerfile_mysql
+          docker build -f Dockerfile_mysql -t $ECR_REPOSITORY:$IMAGE_TAG webapp/
           docker push $ECR_REPOSITORY:$IMAGE_TAG
           docker run --name my_db -d -e MYSQL_ROOT_PASSWORD=pw $ECR_REPOSITORY:$IMAGE_TAG
 
@@ -47,7 +47,7 @@ jobs:
           IMAGE_TAG: flask
         run: |
           ls -ltra
-          docker build . -t $ECR_REPOSITORY:$IMAGE_TAG -f webapp/Dockerfile
+          docker build -f Dockerfile -t $ECR_REPOSITORY:$IMAGE_TAG webapp/
 
       # Step 5: Test and Push Flask App
       - name: Test Flask App
