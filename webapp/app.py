@@ -5,6 +5,8 @@ import random
 import argparse
 import boto3
 import logging
+import time
+from pymysql.err import OperationalError
 
 
 app = Flask(__name__)
@@ -31,14 +33,25 @@ def download_file(image_key, bucket): #Function to download a given file from an
 download_file(IMAGE_KEY, BUCKET)
 
 # Create a connection to the MySQL database
-db_conn = connections.Connection(
-    host= DBHOST,
-    port=DBPORT,
-    user= DBUSER,
-    password= DBPWD, 
-    db= DATABASE
-    
-)
+def get_db_connection(retries=5, delay=2, backoff=2):
+    for attempt in range(retries):
+        try:
+            return connections.Connection(
+                host=DBHOST,
+                port=DBPORT,
+                user=DBUSER,
+                password=DBPWD,
+                db=DATABASE
+            )
+        except OperationalError as e:
+            logging.warning(f"MySQL connection failed (attempt {attempt+1}): {e}")
+            if attempt < retries - 1:
+                time.sleep(delay)
+                delay *= backoff
+            else:
+                logging.error("Failed to connect to MySQL after several attempts.")
+                raise
+
 output = {}
 table = 'employee';
 
@@ -52,6 +65,7 @@ def about():
     
 @app.route("/addemp", methods=['POST'])
 def AddEmp():
+    db_conn = get_db_connection()
     emp_id = request.form['emp_id']
     first_name = request.form['first_name']
     last_name = request.form['last_name']
@@ -81,6 +95,7 @@ def GetEmp():
 
 @app.route("/fetchdata", methods=['GET','POST'])
 def FetchData():
+    db_conn = get_db_connection()
     emp_id = request.form['emp_id']
 
     output = {}
