@@ -7,6 +7,6 @@ data:
   DBPORT: "3306"
   IMAGENAME: "background.jpg"
   BUCKET: "clo835gp3"
-  NAME: "Vidhi"
+  NAME: "Group 3"
   DBHOST: 'mysql-service.final.svc.cluster.local'
 
